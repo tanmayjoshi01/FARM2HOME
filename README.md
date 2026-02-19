@@ -1,4 +1,4 @@
-## farm2home
+## FARM2HOME
 
 Minimal full-stack starter (backend + frontend + database schema).
 
