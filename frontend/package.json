@@ -1,0 +1,13 @@
+{
+  "name": "farm2home-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node src/App.js"
+  },
+  "dependencies": {
+    "react": "^18.3.1"
+  }
+}
+
