@@ -1,7 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
-require("dotenv").config();
+const config = require("./config/env");
+const { testConnection } = require("./config/db");
 
 const app = express();
 
@@ -13,8 +14,13 @@ app.get("/health", (req, res) => {
   res.json({ ok: true });
 });
 
-const port = Number(process.env.PORT) || 5000;
-app.listen(port, () => {
-  console.log(`Backend listening on http://localhost:${port}`);
-});
+async function start() {
+  await testConnection();
+
+  app.listen(config.port, () => {
+    console.log(`Backend listening on http://localhost:${config.port}`);
+  });
+}
+
+start();
 
