@@ -31,6 +31,7 @@ CREATE TABLE IF NOT EXISTS auctions (
   end_time TIMESTAMPTZ NOT NULL,
   status TEXT NOT NULL DEFAULT 'active' CHECK (status IN ('active', 'ended', 'cancelled')),
   winner_id BIGINT REFERENCES users(id),
+  minimum_increment INTEGER NOT NULL DEFAULT 100 CHECK (minimum_increment > 0),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
