@@ -1,26 +1,97 @@
 const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
+const { createServer } = require("http");
+const { Server } = require("socket.io");
 const config = require("./config/env");
-const { testConnection } = require("./config/db");
+const { testConnection, pool } = require("./config/db");
+const { verifyToken } = require("./utils/jwt");
+const auctionService = require("./services/auctionService");
+
+const authRoutes = require("./routes/authRoutes");
+const productRoutes = require("./routes/productRoutes");
+const auctionRoutes = require("./routes/auctionRoutes");
+const orderRoutes = require("./routes/orderRoutes");
 
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
 
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
 
+// Routes
 app.get("/health", (req, res) => {
   res.json({ ok: true });
 });
 
+app.use("/auth", authRoutes);
+app.use("/products", productRoutes);
+app.use("/auctions", auctionRoutes);
+app.use("/orders", orderRoutes);
+
+// Socket.io real-time bidding
+io.on("connection", (socket) => {
+  socket.on("joinAuction", (auctionId) => {
+    socket.join(`auction-${auctionId}`);
+  });
+
+  socket.on("leaveAuction", (auctionId) => {
+    socket.leave(`auction-${auctionId}`);
+  });
+});
+
+function broadcastBidUpdate(auctionId, highestBid, bidder) {
+  io.to(`auction-${auctionId}`).emit("bidUpdate", {
+    auctionId,
+    highestBid,
+    bidder,
+    timestamp: new Date(),
+  });
+}
+
+function broadcastAuctionEnd(auctionId, winner) {
+  io.to(`auction-${auctionId}`).emit("auctionEnded", {
+    auctionId,
+    winner,
+    timestamp: new Date(),
+  });
+}
+
+global.io = io;
+global.broadcastBidUpdate = broadcastBidUpdate;
+global.broadcastAuctionEnd = broadcastAuctionEnd;
+
+// Check for expired auctions every minute
+setInterval(async () => {
+  try {
+    const activeAuctions = await pool.query("SELECT * FROM auctions WHERE status = 'active'");
+    for (const auction of activeAuctions.rows) {
+      if (new Date() > new Date(auction.end_time)) {
+        const bids = await pool.query("SELECT * FROM bids WHERE auction_id = $1 ORDER BY bid_amount DESC LIMIT 1", [auction.id]);
+        const winner_id = bids.rows.length > 0 ? bids.rows[0].user_id : null;
+
+        await pool.query("UPDATE auctions SET status = 'ended', winner_id = $1 WHERE id = $2", [winner_id, auction.id]);
+        broadcastAuctionEnd(auction.id, winner_id);
+      }
+    }
+  } catch (error) {
+    console.error("Error checking expired auctions:", error);
+  }
+}, 60000);
+
 async function start() {
   await testConnection();
 
-  app.listen(config.port, () => {
+  httpServer.listen(config.port, () => {
     console.log(`Backend listening on http://localhost:${config.port}`);
   });
 }
 
 start();
-
