@@ -74,33 +74,14 @@ const Checkout = () => {
       const { total } = computePriceBreakdown(auction.current_price, 120);
       const methodLabel = METHODS.find((m) => m.id === method)?.label || method;
 
-      // Step 1: Find an existing pending order for this auction
-      let orderId = null;
-      try {
-        const ordersRes = await API.get('/orders');
-        const existingOrder = (ordersRes.data || []).find(
-          (o) => Number(o.auction_id) === Number(auctionId)
-        );
-        if (existingOrder) {
-          orderId = existingOrder.id;
-        }
-      } catch (e) {
-        console.warn('Could not fetch existing orders:', e);
-      }
+      // Always call auction-pay: it creates the order if missing, or marks existing as paid
+      const payRes = await API.post('/orders/auction-pay', {
+        auction_id: Number(auctionId),
+        product_id: product.id,
+        transaction_id: transactionId,
+      });
 
-      // Step 2: if order found, mark it paid; otherwise create one
-      if (orderId) {
-        // PUT/PATCH the existing order to paid
-        await API.post(`/orders/${orderId}/pay`, { transaction_id: transactionId });
-      } else {
-        // Create a fresh order and immediately mark it paid
-        const createRes = await API.post('/orders/auction-pay', {
-          auction_id: Number(auctionId),
-          product_id: product.id,
-          transaction_id: transactionId,
-        });
-        orderId = createRes.data?.order_id || createRes.data?.id || auctionId;
-      }
+      const orderId = payRes.data?.order_id || auctionId;
 
       navigate('/payment-success', {
         state: {
