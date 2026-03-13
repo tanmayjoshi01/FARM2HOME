@@ -8,9 +8,6 @@ nixPkgs = ["nodejs_20"]
 [build.nixpacksPlan.phases.install]
 cmds = ["cd backend && npm install"]
 
-[build.nixpacksPlan.phases.build]
-cmds = ["cd backend && npm run build"]
-
 [deploy]
 startCommand = "cd backend && npm start"
 restartPolicyType = "ON_FAILURE"
