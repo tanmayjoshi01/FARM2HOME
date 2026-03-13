@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
@@ -92,7 +92,7 @@ const BidForm = ({ auction, onBidSuccess }) => {
         </button>
       </form>
       <div className="mt-2 text-[11px] text-gray-500">
-        Minimum next bid: <span className="font-semibold text-gray-700">₹${minNextBidDollars}</span>
+        Minimum next bid: <span className="font-semibold text-gray-700">₹{minNextBidDollars}</span>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import API from '../../services/api';
 import { Search, Trash2, Flag, Loader, Package } from 'lucide-react';
 
@@ -92,7 +92,7 @@ const ProductsManagement = () => {
                       <td className="px-5 py-3 font-mono text-xs text-gray-500">#{p.id}</td>
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
-                          <img src={`https://picsum.photos/seed/${p.id+50}/40/40`} alt="" className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
+                          <img src={p.image_url ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${p.image_url}` : "/mango-placeholder.jpg"} alt="" className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
                           <div>
                             <p className="font-bold text-gray-900">{p.name}</p>
                             {isFlagged && <span className="text-[10px] text-red-600 font-bold">⚑ Flagged</span>}

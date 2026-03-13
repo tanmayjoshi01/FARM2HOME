@@ -4,12 +4,17 @@ async function createProduct(req, res) {
   try {
     const { name, description, price_cents, stock } = req.body;
     const farmer_id = req.user.id;
+    
+    let image_url = null;
+    if (req.file) {
+      image_url = `/uploads/products/${req.file.filename}`;
+    }
 
     if (!name || price_cents === undefined || stock === undefined) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    const product = await productModel.createProduct(farmer_id, name, description || "", price_cents, stock);
+    const product = await productModel.createProduct(farmer_id, name, description || "", price_cents, stock, image_url);
 
     res.status(201).json({
       message: "Product created successfully",
@@ -53,6 +58,11 @@ async function updateProduct(req, res) {
     const { name, description, price_cents, stock } = req.body;
     const user_id = req.user.id;
 
+    let image_url = undefined;
+    if (req.file) {
+      image_url = `/uploads/products/${req.file.filename}`;
+    }
+
     const product = await productModel.getProductById(id);
     if (!product) {
       return res.status(404).json({ error: "Product not found" });
@@ -62,7 +72,14 @@ async function updateProduct(req, res) {
       return res.status(403).json({ error: "You can only update your own products" });
     }
 
-    const updated = await productModel.updateProduct(id, name || product.name, description !== undefined ? description : product.description, price_cents !== undefined ? price_cents : product.price_cents, stock !== undefined ? stock : product.stock);
+    const updated = await productModel.updateProduct(
+      id, 
+      name || product.name, 
+      description !== undefined ? description : product.description, 
+      price_cents !== undefined ? price_cents : product.price_cents, 
+      stock !== undefined ? stock : product.stock,
+      image_url
+    );
 
     res.json({
       message: "Product updated successfully",

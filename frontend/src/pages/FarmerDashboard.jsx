@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import CreateProductForm from '../components/CreateProductForm';
@@ -17,6 +17,8 @@ const FarmerDashboard = () => {
   const [loadingProducts, setLoadingProducts] = useState(false);
   const [loadingAuctions, setLoadingAuctions] = useState(false);
   const [actionMessage, setActionMessage] = useState('');
+  const [myOrders, setMyOrders] = useState([]);
+  const [loadingOrders, setLoadingOrders] = useState(false);
 
   const showMessage = (msg) => {
     setActionMessage(msg);
@@ -27,7 +29,7 @@ const FarmerDashboard = () => {
     setLoadingProducts(true);
     try {
       const res = await API.get('/products');
-      const farmerProducts = res.data.filter(p => p.farmer_id === user.id);
+      const farmerProducts = res.data.filter(p => Number(p.farmer_id) === Number(user.id));
       setMyProducts(farmerProducts);
     } catch (e) { console.error(e); }
     finally { setLoadingProducts(false); }
@@ -41,7 +43,7 @@ const FarmerDashboard = () => {
         API.get('/products'),
       ]);
       const myProductIds = productsRes.data
-        .filter(p => p.farmer_id === user.id)
+        .filter(p => Number(p.farmer_id) === Number(user.id))
         .map(p => p.id);
       const farmerAuctions = auctionsRes.data.filter(a => myProductIds.includes(a.product_id));
       // Enrich with product name
@@ -54,10 +56,22 @@ const FarmerDashboard = () => {
     finally { setLoadingAuctions(false); }
   };
 
+  const fetchMyOrders = async () => {
+    setLoadingOrders(true);
+    try {
+      if (user && user.id) {
+        const res = await API.get(`/orders/farmer/${user.id}`);
+        setMyOrders(res.data || []);
+      }
+    } catch (e) { console.error(e); }
+    finally { setLoadingOrders(false); }
+  };
+
   useEffect(() => {
     if (activeTab === 'products') fetchMyProducts();
     if (activeTab === 'auctions') fetchMyAuctions();
-  }, [activeTab, refreshTrigger]);
+    if (activeTab === 'orders') fetchMyOrders();
+  }, [activeTab, refreshTrigger, user]);
 
   const handleDataChange = () => setRefreshTrigger(prev => prev + 1);
 
@@ -76,6 +90,7 @@ const FarmerDashboard = () => {
     { id: 'overview', label: 'Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
     { id: 'products', label: 'My Products', icon: <Package className="w-4 h-4" /> },
     { id: 'auctions', label: 'My Auctions', icon: <Gavel className="w-4 h-4" /> },
+    { id: 'orders',   label: 'Incoming Orders', icon: <Package className="w-4 h-4" /> },
   ];
 
   return (
@@ -270,6 +285,59 @@ const FarmerDashboard = () => {
                   </div>
                 )}
               </>
+            )}
+          </div>
+        )}
+
+        {/* My Orders Tab */}
+        {activeTab === 'orders' && (
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h2 className="text-xl font-bold text-gray-900">Incoming Orders</h2>
+            </div>
+            {loadingOrders ? (
+              <div className="animate-pulse space-y-3">
+                {[...Array(3)].map((_, i) => <div key={i} className="h-16 bg-gray-100 rounded-xl" />)}
+              </div>
+            ) : myOrders.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-gray-100 p-12 text-center">
+                <div className="text-4xl mb-4">📦</div>
+                <p className="text-gray-500 mb-6">No orders have been placed for your products yet.</p>
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="text-[10px] text-gray-400 uppercase tracking-wider bg-gray-50 border-b border-gray-100">
+                    <tr>
+                      <th className="px-6 py-4 text-left">Order ID</th>
+                      <th className="px-6 py-4 text-left">Product</th>
+                      <th className="px-6 py-4 text-left">Buyer</th>
+                      <th className="px-6 py-4 text-left">Final Bid Amount</th>
+                      <th className="px-6 py-4 text-left">Date</th>
+                      <th className="px-6 py-4 text-center">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {myOrders.map(o => {
+                      const orderId = `ORD-${String(o.order_id || o.id).padStart(4, '0')}`;
+                      return (
+                        <tr key={o.order_id || o.id} className="border-b border-gray-50 hover:bg-gray-50">
+                          <td className="px-6 py-4 font-bold text-gray-900">{orderId}</td>
+                          <td className="px-6 py-4 font-bold text-gray-900">{o.product_name}</td>
+                          <td className="px-6 py-4 text-gray-600">{o.buyer_name}</td>
+                          <td className="px-6 py-4 font-extrabold text-green-700">{o.final_bid_amount ? formatMoney(o.final_bid_amount) : '—'}</td>
+                          <td className="px-6 py-4 text-gray-500 text-xs">{new Date(o.order_date).toLocaleDateString()}</td>
+                          <td className="px-6 py-4 text-center">
+                            <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border ${o.payment_status === 'paid' ? 'bg-green-100 text-green-800 border-green-200' : 'bg-amber-100 text-amber-800 border-amber-200'}`}>
+                              {o.payment_status || 'pending'}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
             )}
           </div>
         )}

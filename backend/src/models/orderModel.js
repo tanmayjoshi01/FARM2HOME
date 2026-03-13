@@ -1,9 +1,9 @@
 const { pool } = require("../config/db");
 
-async function createOrder(user_id, product_id, auction_id, quantity, total_price) {
+async function createOrder(buyer_id, farmer_id, product_id, auction_id, quantity, amount) {
   const result = await pool.query(
-    "INSERT INTO orders (user_id, product_id, auction_id, quantity, total_price, status) VALUES ($1, $2, $3, $4, $5, 'pending') RETURNING *",
-    [user_id, product_id, auction_id, quantity, total_price]
+    "INSERT INTO orders (buyer_id, farmer_id, product_id, auction_id, quantity, amount, payment_status) VALUES ($1, $2, $3, $4, $5, $6, 'pending') RETURNING *",
+    [buyer_id, farmer_id, product_id, auction_id, quantity, amount]
   );
   return result.rows[0];
 }
@@ -14,7 +14,7 @@ async function getOrderById(id) {
 }
 
 async function getOrdersByUser(user_id) {
-  const result = await pool.query("SELECT * FROM orders WHERE user_id = $1 ORDER BY created_at DESC", [user_id]);
+  const result = await pool.query("SELECT * FROM orders WHERE buyer_id = $1 ORDER BY created_at DESC", [user_id]);
   return result.rows;
 }
 
@@ -25,7 +25,7 @@ async function getAllOrders() {
 
 async function updateOrderStatus(id, status) {
   const result = await pool.query(
-    "UPDATE orders SET status = $1 WHERE id = $2 RETURNING *",
+    "UPDATE orders SET payment_status = $1 WHERE id = $2 RETURNING *",
     [status, id]
   );
   return result.rows[0];

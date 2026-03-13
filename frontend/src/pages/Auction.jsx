@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import API from '../services/api';
 import CountdownTimer from '../components/CountdownTimer';
@@ -108,12 +108,17 @@ const Auction = () => {
           {/* Left: Images */}
           <div className="space-y-4">
             <div className="aspect-square bg-white rounded-3xl overflow-hidden shadow-sm border border-gray-100">
-              <img src={`https://picsum.photos/seed/${product.id + 100}/800/800`} alt={product.name} className="w-full h-full object-cover" />
+              <img 
+                src={product.image_url ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${product.image_url}` : "/mango-placeholder.jpg"} 
+                alt={product.name} 
+                onError={(e) => { e.currentTarget.src = '/mango-placeholder.jpg'; }}
+                className="w-full h-full object-cover" 
+              />
             </div>
             <div className="grid grid-cols-4 gap-3">
               {[1, 2, 3, 4].map(i => (
                 <div key={i} className={`aspect-square rounded-xl overflow-hidden ${i === 1 ? 'ring-2 ring-amber-500' : ''}`}>
-                  <img src={`https://picsum.photos/seed/${product.id + 100 + i}/200/200`} alt="" className="w-full h-full object-cover" />
+                  <img src={product.image_url ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${product.image_url}` : "/mango-placeholder.jpg"} alt="" onError={(e) => { e.currentTarget.src = '/mango-placeholder.jpg'; }} className="w-full h-full object-cover" />
                 </div>
               ))}
             </div>

@@ -1,4 +1,4 @@
-﻿import React from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, Eye, Tag, Info } from 'lucide-react';
 
@@ -14,8 +14,9 @@ const ProductCard = ({ product, auction, onAddToCart, onViewDetails }) => {
       {/* Image */}
       <div className="relative aspect-[4/3] bg-gray-100 overflow-hidden">
         <img
-          src={`https://picsum.photos/seed/${product.id + 50}/400/300`}
+          src={product.image_url ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${product.image_url}` : "/mango-placeholder.jpg"}
           alt={product.name}
+          onError={(e) => { e.currentTarget.src = '/mango-placeholder.jpg'; }}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
         <div className="absolute top-3 left-3 flex flex-col gap-2">

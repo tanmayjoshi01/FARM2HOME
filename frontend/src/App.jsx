@@ -16,6 +16,8 @@ const BuyerDashboard = lazy(() => import('./pages/BuyerDashboard'));
 const FarmerDashboard = lazy(() => import('./pages/FarmerDashboard'));
 const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const Orders = lazy(() => import('./pages/Orders'));
+const Checkout = lazy(() => import('./pages/Checkout'));
+const PaymentSuccess = lazy(() => import('./pages/PaymentSuccess'));
 
 // Page loader fallback
 const PageLoader = () => (
@@ -77,6 +79,16 @@ function App() {
           <Route path="/orders" element={
             <ProtectedRoute requiredRole="buyer">
               <Layout><Orders /></Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/checkout/:auctionId" element={
+            <ProtectedRoute requiredRole="buyer">
+              <Layout><Checkout /></Layout>
+            </ProtectedRoute>
+          } />
+          <Route path="/payment-success" element={
+            <ProtectedRoute requiredRole="buyer">
+              <Layout><PaymentSuccess /></Layout>
             </ProtectedRoute>
           } />
 

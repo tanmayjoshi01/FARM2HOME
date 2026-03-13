@@ -1,8 +1,8 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import API from '../services/api';
 import AuctionCard from '../components/AuctionCard';
-import { ShoppingBag, TrendingUp, Package, Clock, Gavel, LayoutDashboard } from 'lucide-react';
+import { ShoppingBag, TrendingUp, Package, Clock, Gavel, LayoutDashboard, Receipt, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
@@ -15,8 +15,10 @@ const BuyerDashboard = () => {
   const [auctions, setAuctions] = useState([]);
   const [products, setProducts] = useState([]);
   const [myBids, setMyBids] = useState([]);
+  const [myOrders, setMyOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingBids, setLoadingBids] = useState(false);
+  const [loadingOrders, setLoadingOrders] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -68,9 +70,26 @@ const BuyerDashboard = () => {
 
   const getProductName = (productId) => products.find(p => p.id === productId)?.name || `Product #${productId}`;
 
+  // Fetch orders when tab is selected
+  useEffect(() => {
+    if (activeTab !== 'orders') return;
+    const fetchOrders = async () => {
+      setLoadingOrders(true);
+      try {
+        if (user && user.id) {
+          const res = await API.get(`/orders/buyer/${user.id}`);
+          setMyOrders(res.data || []);
+        }
+      } catch (e) { console.error(e); }
+      finally { setLoadingOrders(false); }
+    };
+    fetchOrders();
+  }, [activeTab, user]);
+
   const tabs = [
     { id: 'overview', label: 'Overview', icon: <LayoutDashboard className="w-4 h-4" /> },
-    { id: 'bids', label: 'My Bids', icon: <Gavel className="w-4 h-4" /> },
+    { id: 'bids',     label: 'My Bids',  icon: <Gavel className="w-4 h-4" /> },
+    { id: 'orders',   label: 'My Orders', icon: <Receipt className="w-4 h-4" /> },
   ];
 
   return (
@@ -162,7 +181,7 @@ const BuyerDashboard = () => {
                   {products.slice(0, 4).map(p => (
                     <Link key={p.id} to="/products" className="bg-white rounded-xl border border-gray-100 p-4 hover:shadow-md transition-shadow flex items-center gap-3">
                       <div className="w-12 h-12 rounded-lg bg-gray-100 overflow-hidden flex-shrink-0">
-                        <img src={`https://picsum.photos/seed/${p.id + 50}/80/80`} alt={p.name} className="w-full h-full object-cover" />
+                        <img src={p.image_url ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${p.image_url}` : "/mango-placeholder.jpg"} alt={p.name} className="w-full h-full object-cover" />
                       </div>
                       <div className="min-w-0">
                         <p className="font-bold text-sm text-gray-900 truncate">{p.name}</p>
@@ -221,6 +240,80 @@ const BuyerDashboard = () => {
                         </td>
                       </tr>
                     ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+        {/* ─── My Orders Tab ─── */}
+        {activeTab === 'orders' && (
+          <div>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-xl font-bold text-gray-900">My Orders</h2>
+              <Link to="/orders" className="text-green-700 font-bold text-sm hover:underline">See all orders →</Link>
+            </div>
+            {loadingOrders ? (
+              <div className="animate-pulse space-y-3">{[...Array(4)].map((_, i) => <div key={i} className="h-16 bg-gray-100 rounded-xl" />)}</div>
+            ) : myOrders.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-gray-100 p-16 text-center">
+                <div className="text-5xl mb-4">📦</div>
+                <p className="text-gray-700 font-bold text-lg mb-2">No orders yet</p>
+                <p className="text-gray-400 text-sm mb-6">Win an auction to place your first order.</p>
+                <Link to="/products" className="bg-green-700 text-white font-bold py-2.5 px-6 rounded-xl hover:bg-green-800 transition-colors">Browse Auctions</Link>
+              </div>
+            ) : (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-x-auto">
+                <table className="w-full text-sm min-w-[700px]">
+                  <thead className="text-[10px] text-gray-400 uppercase tracking-wider bg-gray-50 border-b border-gray-100">
+                    <tr>
+                      <th className="px-5 py-4 text-left">Order ID</th>
+                      <th className="px-5 py-4 text-left">Product</th>
+                      <th className="px-5 py-4 text-left">Farmer</th>
+                      <th className="px-5 py-4 text-left">Auction ID</th>
+                      <th className="px-5 py-4 text-left">Amount Paid</th>
+                      <th className="px-5 py-4 text-center">Status</th>
+                      <th className="px-5 py-4 text-left">Transaction ID</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {myOrders.map((order) => {
+                      const orderId = `ORD-${String(order.order_id || order.id).padStart(4, '0')}`;
+                      const auctionId = order.auction_id ? `AUC-${String(order.auction_id).padStart(5, '0')}` : '—';
+                      const amount = order.amount ? `₹${(order.amount / 100).toFixed(2)}` : '—';
+                      const txn = order.transaction_id || '—';
+                      const statusMap = {
+                        paid:      { label: 'Paid',      cls: 'bg-green-100 text-green-800 border-green-200',   icon: <CheckCircle className="w-3 h-3" /> },
+                        delivered: { label: 'Delivered', cls: 'bg-green-100 text-green-800 border-green-200',   icon: <CheckCircle className="w-3 h-3" /> },
+                        pending:   { label: 'Pending',   cls: 'bg-amber-100 text-amber-800 border-amber-200',   icon: <Clock className="w-3 h-3" /> },
+                        failed:    { label: 'Failed',    cls: 'bg-red-100 text-red-700 border-red-200',         icon: <AlertCircle className="w-3 h-3" /> },
+                      };
+                      const s = statusMap[order.payment_status] || statusMap.pending;
+                      return (
+                        <tr key={order.order_id || order.id} className="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                          <td className="px-5 py-4 font-bold text-gray-900">{orderId}</td>
+                          <td className="px-5 py-4 text-gray-700 max-w-[140px] truncate" title={order.product_name}>{order.product_name}</td>
+                          <td className="px-5 py-4 text-gray-600">{order.farmer_name}</td>
+                          <td className="px-5 py-4 text-gray-600">
+                            {order.auction_id ? (
+                              <Link to={`/auction/${order.auction_id}`} className="text-green-700 hover:underline font-semibold">{auctionId}</Link>
+                            ) : '—'}
+                          </td>
+                          <td className="px-5 py-4 font-bold text-gray-900">{amount}</td>
+                          <td className="px-5 py-4 text-center">
+                            <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold border ${s.cls}`}>
+                              {s.icon} {s.label}
+                            </span>
+                            {order.payment_status === 'pending' && order.auction_id && (
+                              <Link to={`/checkout/${order.auction_id}`} className="block mt-2 text-[10px] font-bold text-white bg-green-600 hover:bg-green-700 px-2 py-1 rounded">Checkout</Link>
+                            )}
+                          </td>
+                          <td className="px-5 py-4 text-gray-500 text-xs font-mono">
+                            {txn !== '—' ? txn.slice(0, 18) + '…' : '—'}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>

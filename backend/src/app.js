@@ -26,6 +26,7 @@ const io = new Server(httpServer, {
 app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
+app.use("/uploads", express.static("uploads"));
 
 // Routes
 app.get("/health", (req, res) => {
@@ -80,6 +81,26 @@ setInterval(async () => {
         const winner_id = bids.rows.length > 0 ? bids.rows[0].user_id : null;
 
         await pool.query("UPDATE auctions SET status = 'ended', winner_id = $1 WHERE id = $2", [winner_id, auction.id]);
+        
+        // Auto-create order if someone won
+        if (winner_id) {
+          // Check if order already exists to prevent duplicates
+          const orderExists = await pool.query("SELECT id FROM orders WHERE auction_id = $1", [auction.id]);
+          
+          if (orderExists.rows.length === 0) {
+            // Get product to find the farmer
+            const product = await pool.query("SELECT farmer_id FROM products WHERE id = $1", [auction.product_id]);
+            const farmer_id = product.rows[0]?.farmer_id;
+            
+            if (farmer_id) {
+              await pool.query(
+                "INSERT INTO orders (auction_id, product_id, buyer_id, farmer_id, amount, payment_status) VALUES ($1, $2, $3, $4, $5, 'pending')",
+                [auction.id, auction.product_id, winner_id, farmer_id, auction.current_price]
+              );
+            }
+          }
+        }
+        
         broadcastAuctionEnd(auction.id, winner_id);
       }
     }

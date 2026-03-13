@@ -1,19 +1,21 @@
-﻿import React from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import CountdownTimer from './CountdownTimer';
 import { Eye } from 'lucide-react';
 
 const formatMoney = (cents) => `₹${(cents / 100).toFixed(2)}`;
 
-const AuctionCard = ({ auction, productName, productId }) => {
+const AuctionCard = ({ auction, productName, productId, imageUrl }) => {
   const isActive = auction.status === 'active';
+  const displayImage = imageUrl ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${imageUrl}` : "/mango-placeholder.jpg";
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
       <div className="relative aspect-video bg-gray-100 overflow-hidden">
         <img
-          src={`https://picsum.photos/seed/${productId + 80}/400/225`}
+          src={displayImage}
           alt={productName}
+          onError={(e) => { e.currentTarget.src = '/mango-placeholder.jpg'; }}
           className="w-full h-full object-cover"
         />
         <div className="absolute top-3 left-3">

@@ -1,9 +1,9 @@
 const { pool } = require("../config/db");
 
-async function createProduct(farmer_id, name, description, price_cents, stock) {
+async function createProduct(farmer_id, name, description, price_cents, stock, image_url) {
   const result = await pool.query(
-    "INSERT INTO products (farmer_id, name, description, price_cents, stock) VALUES ($1, $2, $3, $4, $5) RETURNING *",
-    [farmer_id, name, description, price_cents, stock]
+    "INSERT INTO products (farmer_id, name, description, price_cents, stock, image_url) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+    [farmer_id, name, description, price_cents, stock, image_url]
   );
   return result.rows[0];
 }
@@ -18,11 +18,19 @@ async function getProductById(id) {
   return result.rows[0];
 }
 
-async function updateProduct(id, name, description, price_cents, stock) {
-  const result = await pool.query(
-    "UPDATE products SET name = $1, description = $2, price_cents = $3, stock = $4 WHERE id = $5 RETURNING *",
-    [name, description, price_cents, stock, id]
-  );
+async function updateProduct(id, name, description, price_cents, stock, image_url) {
+  let query = "UPDATE products SET name = $1, description = $2, price_cents = $3, stock = $4";
+  const values = [name, description, price_cents, stock];
+  
+  if (image_url !== undefined) {
+    query += ", image_url = $" + (values.length + 1);
+    values.push(image_url);
+  }
+  
+  query += " WHERE id = $" + (values.length + 1) + " RETURNING *";
+  values.push(id);
+
+  const result = await pool.query(query, values);
   return result.rows[0];
 }
 

@@ -1,35 +1,31 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import API from '../services/api';
-import { Package, ShoppingBag, ArrowRight, CheckCircle, Clock, Loader } from 'lucide-react';
+import { Package, ShoppingBag, ArrowRight, CheckCircle, Clock, Loader, ExternalLink } from 'lucide-react';
 
 const statusConfig = {
-  delivered: { label: 'Delivered', color: 'bg-green-100 text-green-800 border-green-200', icon: <CheckCircle className="w-3.5 h-3.5" /> },
-  shipped:   { label: 'Shipped',   color: 'bg-blue-100 text-blue-800 border-blue-200',  icon: <Clock className="w-3.5 h-3.5" /> },
+  delivered: { label: 'Delivered', color: 'bg-green-100 text-green-800 border-green-200',  icon: <CheckCircle className="w-3.5 h-3.5" /> },
+  shipped:   { label: 'Shipped',   color: 'bg-blue-100 text-blue-800 border-blue-200',    icon: <Clock className="w-3.5 h-3.5" /> },
   paid:      { label: 'Paid',      color: 'bg-purple-100 text-purple-800 border-purple-200', icon: <CheckCircle className="w-3.5 h-3.5" /> },
-  pending:   { label: 'Pending',   color: 'bg-amber-100 text-amber-800 border-amber-200', icon: <Clock className="w-3.5 h-3.5" /> },
+  pending:   { label: 'Pending',   color: 'bg-amber-100 text-amber-800 border-amber-200',  icon: <Clock className="w-3.5 h-3.5" /> },
+  failed:    { label: 'Failed',    color: 'bg-red-100 text-red-700 border-red-200',        icon: <ExternalLink className="w-3.5 h-3.5" /> },
 };
+
+import { useAuth } from '../context/AuthContext';
 
 const Orders = () => {
   const [orders, setOrders] = useState([]);
-  const [products, setProducts] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const { user } = useAuth();
 
   useEffect(() => {
+    if (!user?.id) return;
     const fetchData = async () => {
       try {
-        const [ordersRes, productsRes] = await Promise.all([
-          API.get('/orders'),
-          API.get('/products'),
-        ]);
-
-        // Build a product lookup map: id → product
-        const productMap = {};
-        (productsRes.data || []).forEach(p => { productMap[p.id] = p; });
-
+        // Use buyer-specific endpoint which returns enriched data (product_name, farmer_name)
+        const ordersRes = await API.get(`/orders/buyer/${user.id}`);
         setOrders(ordersRes.data || []);
-        setProducts(productMap);
       } catch (e) {
         console.error(e);
         setError('Failed to load orders.');
@@ -38,7 +34,7 @@ const Orders = () => {
       }
     };
     fetchData();
-  }, []);
+  }, [user]);
 
   return (
     <div className="bg-gray-50 flex-1 py-12 px-4 sm:px-6 lg:px-8">
@@ -90,17 +86,19 @@ const Orders = () => {
         {!loading && !error && orders.length > 0 && (
           <div className="space-y-4">
             {orders.map(order => {
-              const s = statusConfig[order.status] || statusConfig.pending;
-              const product = products[order.product_id];
-              const productName = product?.name || `Product #${order.product_id}`;
-              const orderId = `ORD-${String(order.id).padStart(4, '0')}`;
+              const s = statusConfig[order.payment_status] || statusConfig.pending;
+              // buyer endpoint returns enriched fields: product_name, farmer_name
+              const productName = order.product_name || `Product #${order.product_id}`;
+              const farmerName = order.farmer_name || '';
+              const orderId = `ORD-${String(order.order_id || order.id).padStart(4, '0')}`;
               const date = new Date(order.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 
               return (
-                <div key={order.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 flex items-center gap-6">
+              <div key={order.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+                <div className="flex items-center gap-5">
                   <div className="w-14 h-14 bg-gray-100 rounded-xl overflow-hidden flex-shrink-0">
                     <img
-                      src={`https://picsum.photos/seed/${order.product_id + 100}/80/80`}
+                      src={order.image_url ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${order.image_url}` : "/mango-placeholder.jpg"}
                       alt={productName}
                       className="w-full h-full object-cover"
                     />
@@ -111,8 +109,16 @@ const Orders = () => {
                       <div>
                         <p className="font-bold text-gray-900">{productName}</p>
                         <p className="text-xs text-gray-500 mt-0.5">
-                          {orderId} · {date} · Qty: {order.quantity}
+                          {orderId} · {date}{order.quantity ? ` · Qty: ${order.quantity}` : ''}
                         </p>
+                        {farmerName && (
+                          <p className="text-xs text-green-700 mt-0.5 font-semibold">Farmer: {farmerName}</p>
+                        )}
+                        {order.transaction_id && (
+                          <p className="text-xs text-gray-400 mt-0.5 font-mono">
+                            TXN: {order.transaction_id.slice(0, 20)}…
+                          </p>
+                        )}
                       </div>
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold uppercase border flex-shrink-0 ${s.color}`}>
                         {s.icon} {s.label}
@@ -122,14 +128,22 @@ const Orders = () => {
 
                   <div className="text-right flex-shrink-0">
                     <p className="text-lg font-extrabold text-gray-900">
-                      ${(order.total_price / 100).toFixed(2)}
+                      ₹{(order.amount / 100).toFixed(2)}
                     </p>
-                    {order.status === 'pending' && (
+                    {order.payment_status === 'pending' && order.auction_id && (
+                      <Link
+                        to={`/checkout/${order.auction_id}`}
+                        className="inline-flex items-center gap-1 text-xs text-green-700 font-bold hover:underline mt-1"
+                      >
+                        <ExternalLink className="w-3 h-3" /> Checkout
+                      </Link>
+                    )}
+                    {order.payment_status === 'pending' && !order.auction_id && (
                       <button
                         onClick={async () => {
                           try {
                             await API.post(`/orders/${order.id}/pay`);
-                            setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: 'paid' } : o));
+                            setOrders(prev => prev.map(o => o.id === order.id ? { ...o, payment_status: 'paid' } : o));
                           } catch (e) { console.error(e); }
                         }}
                         className="text-xs text-amber-600 font-bold hover:underline mt-1 block"
@@ -139,6 +153,7 @@ const Orders = () => {
                     )}
                   </div>
                 </div>
+              </div>
               );
             })}
           </div>

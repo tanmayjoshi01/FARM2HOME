@@ -17,7 +17,7 @@ const Settings = () => (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-8 max-w-xl">
       <h3 className="font-bold text-gray-900 mb-4">Platform Settings</h3>
       <div className="space-y-4">
-        {[['Platform Name', 'Farm2Home'], ['Backend URL', 'http://localhost:5000'], ['Auction Minimum Increment', '$1.00'], ['Default Auction Duration', '24 hours']].map(([label, val]) => (
+        {[['Platform Name', 'Farm2Home'], ['Backend URL', 'http://localhost:5000'], ['Auction Minimum Increment', '₹100'], ['Default Auction Duration', '24 hours']].map(([label, val]) => (
           <div key={label} className="flex justify-between items-center py-3 border-b border-gray-50">
             <span className="text-sm font-medium text-gray-700">{label}</span>
             <span className="text-sm font-bold text-gray-500 bg-gray-50 px-3 py-1 rounded-lg">{val}</span>

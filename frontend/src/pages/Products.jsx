@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import API from '../services/api';
 import ProductCard from '../components/ProductCard';
@@ -20,7 +20,11 @@ const ProductModal = ({ item, onClose, onAddToCart, userRole }) => {
       >
         {/* Image */}
         <div className="relative aspect-video bg-gray-100 overflow-hidden rounded-t-3xl">
-          <img src={`https://picsum.photos/seed/${product.id + 50}/800/450`} alt={product.name} className="w-full h-full object-cover" />
+          <img 
+            src={product.image_url ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${product.image_url}` : "/mango-placeholder.jpg"} 
+            alt={product.name} 
+            className="w-full h-full object-cover" 
+          />
           <button onClick={onClose} className="absolute top-4 right-4 w-10 h-10 bg-black/50 hover:bg-black/70 text-white rounded-full flex items-center justify-center transition-colors">
             <X className="w-5 h-5" />
           </button>
@@ -34,7 +38,7 @@ const ProductModal = ({ item, onClose, onAddToCart, userRole }) => {
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-gray-50 rounded-xl p-4">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Price</p>
-              <p className="text-2xl font-extrabold text-green-700">₹${(product.price_cents / 100).toFixed(2)}</p>
+              <p className="text-2xl font-extrabold text-green-700">₹{(product.price_cents / 100).toFixed(2)}</p>
             </div>
             <div className="bg-gray-50 rounded-xl p-4">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Stock Available</p>
@@ -43,7 +47,7 @@ const ProductModal = ({ item, onClose, onAddToCart, userRole }) => {
             {isOnAuction && (
               <div className="bg-amber-50 rounded-xl p-4 border border-amber-100">
                 <p className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-1">Current Bid</p>
-                <p className="text-2xl font-extrabold text-amber-600">₹${(auction.current_price / 100).toFixed(2)}</p>
+                <p className="text-2xl font-extrabold text-amber-600">₹{(auction.current_price / 100).toFixed(2)}</p>
               </div>
             )}
             <div className="bg-gray-50 rounded-xl p-4">
@@ -227,6 +231,7 @@ const Products = () => {
                   key={item.product.id}
                   product={item.product}
                   auction={item.auction}
+                  imageUrl={item.product.image_url}
                   onAddToCart={user?.role === 'buyer' ? handleAddToCart : undefined}
                   onViewDetails={() => setSelectedItem(item)}
                 />

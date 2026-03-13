@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import API from '../../services/api';
 import { Users, Package, Gavel, TrendingUp, ShoppingBag, FileText, Clock, Loader } from 'lucide-react';
 
@@ -121,7 +121,7 @@ const DashboardOverview = ({ onNavigate }) => {
                     <p className="text-sm font-semibold text-gray-900 truncate">{bid.bidder_name}</p>
                     <p className="text-xs text-gray-500 truncate">on {bid.productName}</p>
                   </div>
-                  <span className="font-extrabold text-amber-600 text-sm">₹${(bid.bid_amount/100).toFixed(2)}</span>
+                  <span className="font-extrabold text-amber-600 text-sm">₹{(bid.bid_amount/100).toFixed(2)}</span>
                 </div>
               ))}
             </div>
@@ -148,7 +148,7 @@ const DashboardOverview = ({ onNavigate }) => {
                     <p className="text-sm font-semibold text-gray-900 truncate">{a.productName}</p>
                     <div className="flex justify-between mt-0.5">
                       <span className="text-xs text-red-500 font-bold">{mins}m left</span>
-                      <span className="text-xs text-amber-600 font-bold">₹${(a.current_price/100).toFixed(2)}</span>
+                      <span className="text-xs text-amber-600 font-bold">₹{(a.current_price/100).toFixed(2)}</span>
                     </div>
                   </div>
                 );
@@ -170,10 +170,10 @@ const DashboardOverview = ({ onNavigate }) => {
           <div className="p-4 grid grid-cols-2 md:grid-cols-5 gap-3">
             {recentProducts.map(p => (
               <div key={p.id} className="bg-gray-50 rounded-xl p-3 flex items-center gap-2">
-                <img src={`https://picsum.photos/seed/${p.id+50}/40/40`} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
+                <img src={p.image_url ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${p.image_url}` : "/mango-placeholder.jpg"} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
                 <div className="min-w-0">
                   <p className="text-xs font-bold text-gray-900 truncate">{p.name}</p>
-                  <p className="text-xs text-green-700 font-semibold">₹${(p.price_cents/100).toFixed(2)}</p>
+                  <p className="text-xs text-green-700 font-semibold">₹{(p.price_cents/100).toFixed(2)}</p>
                 </div>
               </div>
             ))}

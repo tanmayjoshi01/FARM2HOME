@@ -7,7 +7,8 @@ const CreateProductForm = ({ onProductCreated }) => {
     name: '',
     description: '',
     price: '',
-    stock: ''
+    stock: '',
+    image: null
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -23,15 +24,20 @@ const CreateProductForm = ({ onProductCreated }) => {
       const priceCents = Math.round(parseFloat(formData.price) * 100);
       const stockInt = parseInt(formData.stock, 10);
       
-      await API.post('/products', {
-        name: formData.name,
-        description: formData.description,
-        price_cents: priceCents,
-        stock: stockInt
-      });
+      const formDataObj = new FormData();
+      formDataObj.append('name', formData.name);
+      formDataObj.append('description', formData.description);
+      formDataObj.append('price_cents', priceCents);
+      formDataObj.append('stock', stockInt);
+      
+      if (formData.image) {
+        formDataObj.append('image', formData.image);
+      }
+      
+      await API.post('/products', formDataObj);
       
       setSuccess(true);
-      setFormData({ name: '', description: '', price: '', stock: '' });
+      setFormData({ name: '', description: '', price: '', stock: '', image: null });
       if (onProductCreated) onProductCreated();
     } catch (err) {
       setError(err.response?.data?.error || "Failed to create product");
@@ -78,7 +84,7 @@ const CreateProductForm = ({ onProductCreated }) => {
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-gray-700 mb-1">Base Price ($)</label>
+            <label className="block text-xs font-bold text-gray-700 mb-1">Base Price (₹)</label>
             <input 
               type="number" 
               required 
@@ -102,6 +108,16 @@ const CreateProductForm = ({ onProductCreated }) => {
               className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500"
             />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-xs font-bold text-gray-700 mb-1">Product Image</label>
+          <input 
+            type="file" 
+            accept="image/*"
+            onChange={(e) => setFormData({...formData, image: e.target.files[0]})}
+            className="w-full px-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100"
+          />
         </div>
 
         <div className="mt-auto pt-4">
