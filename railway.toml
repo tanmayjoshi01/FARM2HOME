@@ -2,6 +2,15 @@
 builder = "NIXPACKS"
 watch = ["backend/**"]
 
+[build.nixpacksPlan.phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[build.nixpacksPlan.phases.install]
+cmds = ["cd backend && npm install"]
+
+[build.nixpacksPlan.phases.build]
+cmds = ["cd backend && npm run build"]
+
 [deploy]
-startCommand = "npm start"
+startCommand = "cd backend && npm start"
 restartPolicyType = "ON_FAILURE"
