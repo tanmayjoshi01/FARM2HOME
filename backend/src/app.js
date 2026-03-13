@@ -4,7 +4,7 @@ const morgan = require("morgan");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 const config = require("./config/env");
-const { testConnection, pool } = require("./config/db");
+const { testConnection, pool, seedDatabase } = require("./config/db");
 const { verifyToken } = require("./utils/jwt");
 const auctionService = require("./services/auctionService");
 
@@ -111,6 +111,7 @@ setInterval(async () => {
 
 async function start() {
   await testConnection();
+  await seedDatabase();
 
   httpServer.listen(config.port, () => {
     console.log(`Backend listening on http://localhost:${config.port}`);

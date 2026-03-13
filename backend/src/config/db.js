@@ -1,4 +1,6 @@
 const { Pool } = require("pg");
+const fs = require("fs");
+const path = require("path");
 const config = require("./env");
 
 const isProduction = process.env.NODE_ENV === "production";
@@ -24,5 +26,6 @@ async function testConnection() {
 module.exports = {
   pool,
   testConnection,
+  seedDatabase,
 };
 
