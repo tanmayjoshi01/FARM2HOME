@@ -4,6 +4,7 @@ import API from '../services/api';
 import { useCart } from '../context/CartContext';
 import CartItem from '../components/CartItem';
 import AddressForm from '../components/AddressForm';
+import MockPaymentGateway from '../components/checkout/MockPaymentGateway';
 import { Lock, ShoppingBag } from 'lucide-react';
 
 const Cart = () => {
@@ -13,29 +14,42 @@ const Cart = () => {
   });
   const [placingOrder, setPlacingOrder] = useState(false);
   const [orderComplete, setOrderComplete] = useState(false);
+  const [isGatewayOpen, setIsGatewayOpen] = useState(false);
 
   const handleAddressChange = (e) => {
     setAddressData({ ...addressData, [e.target.name]: e.target.value });
   };
 
-  const handleCheckout = async (e) => {
+  const handleCheckoutClick = (e) => {
     e.preventDefault();
+    setIsGatewayOpen(true);
+  };
+
+  const handlePaymentSuccess = async (paymentDetails) => {
+    setIsGatewayOpen(false);
     setPlacingOrder(true);
     try {
-      // Create an order for each item in the cart
-      await Promise.all(cartItems.map(item => 
+      // 1. Create an order for each item in the cart
+      const orderPromises = cartItems.map(item => 
         API.post('/orders', {
           product_id: item.product.id,
           quantity: item.quantity,
           auction_id: null
         })
+      );
+      const responses = await Promise.all(orderPromises);
+      
+      // 2. Mark all as paid 
+      await Promise.all(responses.map(res => 
+        API.post(`/orders/${res.data.order.id}/pay`, {
+          transaction_id: paymentDetails.razorpay_payment_id
+        })
       ));
+
       clearCart();
       setOrderComplete(true);
     } catch (err) {
       console.error('Checkout failed', err);
-      // Even if one fails, we can show completion or an error toast.
-      // For now, clear cart to respect the flow.
       clearCart();
       setOrderComplete(true);
     } finally {
@@ -79,7 +93,7 @@ const Cart = () => {
             </Link>
           </div>
         ) : (
-          <form onSubmit={handleCheckout} className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+          <form onSubmit={handleCheckoutClick} className="grid grid-cols-1 lg:grid-cols-3 gap-10">
             {/* Cart Items + Address */}
             <div className="lg:col-span-2 space-y-6">
               {/* Cart Items */}
@@ -141,6 +155,14 @@ const Cart = () => {
           </form>
         )}
       </div>
+      
+      <MockPaymentGateway 
+        isOpen={isGatewayOpen}
+        onClose={() => setIsGatewayOpen(false)}
+        amount={cartTotal * 1.08 / 100}
+        onSuccess={handlePaymentSuccess}
+        methodLabel="upi"
+      />
     </div>
   );
 };

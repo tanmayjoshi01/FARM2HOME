@@ -6,6 +6,7 @@ import CheckoutProductCard from '../components/checkout/CheckoutProductCard';
 import PaymentSummaryCard from '../components/checkout/PaymentSummaryCard';
 import { computePriceBreakdown } from '../components/checkout/PriceBreakdown';
 import { METHODS } from '../components/checkout/PaymentMethodSelector';
+import MockPaymentGateway from '../components/checkout/MockPaymentGateway';
 
 /* ── Skeleton loader ──────────────────────────────────── */
 const SkeletonBlock = ({ className }) => (
@@ -41,6 +42,7 @@ const Checkout = () => {
   const [method,   setMethod]   = useState('');
   const [paying,   setPaying]   = useState(false);
   const [payError, setPayError] = useState('');
+  const [isGatewayOpen, setIsGatewayOpen] = useState(false);
 
   /* ── Fetch auction & product ────────────────────────── */
   useEffect(() => {
@@ -64,17 +66,22 @@ const Checkout = () => {
   }, [auctionId]);
 
   /* ── Payment handler ────────────────────────────────── */
-  const handlePay = async () => {
+  const handlePayClick = () => {
     if (!method) return;
-    setPaying(true);
     setPayError('');
+    setIsGatewayOpen(true);
+  };
+
+  const handlePaymentSuccess = async (paymentDetails) => {
+    setIsGatewayOpen(false);
+    setPaying(true);
 
     try {
-      const transactionId = `TXN${Date.now()}${Math.floor(Math.random() * 10000)}`;
+      const transactionId = paymentDetails.razorpay_payment_id;
       const { total } = computePriceBreakdown(auction.current_price, 120);
       const methodLabel = METHODS.find((m) => m.id === method)?.label || method;
 
-      // Always call auction-pay: it creates the order if missing, or marks existing as paid
+      // Call our original auction-pay endpoint to finalize the order
       const payRes = await API.post('/orders/auction-pay', {
         auction_id: Number(auctionId),
         product_id: product.id,
@@ -95,7 +102,8 @@ const Checkout = () => {
       });
     } catch (e) {
       console.error(e);
-      setPayError('Payment failed. Please try again.');
+      setPayError('Failed to record payment in database. Please contact support.');
+    } finally {
       setPaying(false);
     }
   };
@@ -185,7 +193,7 @@ const Checkout = () => {
                 deliveryFeeRupees={120}
                 selectedMethod={method}
                 onSelectMethod={setMethod}
-                onPay={handlePay}
+                onPay={handlePayClick}
                 loading={paying}
               />
             </div>
@@ -202,7 +210,7 @@ const Checkout = () => {
               deliveryFeeRupees={120}
               selectedMethod={method}
               onSelectMethod={setMethod}
-              onPay={handlePay}
+              onPay={handlePayClick}
               loading={paying}
             />
           </div>
@@ -216,6 +224,14 @@ const Checkout = () => {
           </div>
         )}
       </div>
+
+      <MockPaymentGateway 
+        isOpen={isGatewayOpen}
+        onClose={() => setIsGatewayOpen(false)}
+        amount={computePriceBreakdown(auction.current_price, 120).total}
+        onSuccess={handlePaymentSuccess}
+        methodLabel={METHODS.find((m) => m.id === method)?.label || method}
+      />
     </div>
   );
 };

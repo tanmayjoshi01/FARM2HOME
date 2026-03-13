@@ -13,6 +13,7 @@ const productRoutes = require("./routes/productRoutes");
 const auctionRoutes = require("./routes/auctionRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const disputeRoutes = require("./routes/disputeRoutes");
+const paymentRoutes = require("./routes/paymentRoutes");
 
 const app = express();
 const httpServer = createServer(app);
@@ -38,6 +39,7 @@ app.use("/products", productRoutes);
 app.use("/auctions", auctionRoutes);
 app.use("/orders", orderRoutes);
 app.use("/disputes", disputeRoutes);
+app.use("/payment", paymentRoutes);
 
 // Socket.io real-time bidding
 io.on("connection", (socket) => {
