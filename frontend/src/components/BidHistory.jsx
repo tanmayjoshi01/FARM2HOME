@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import API from '../services/api';
 
-const formatMoney = (cents) => `$${(cents / 100).toFixed(2)}`;
+const formatMoney = (cents) => `₹${(cents / 100).toFixed(2)}`;
 
 const BidHistory = ({ auctionId, refreshTrigger }) => {
   const [bids, setBids] = useState([]);

@@ -88,11 +88,11 @@ function App() {
           } />
 
           {/* Admin Routes */}
-          <Route path="/admin" element={
-            <ProtectedRoute requiredRole="admin">
-              <Layout><AdminDashboard /></Layout>
-            </ProtectedRoute>
-          } />
+        <Route path="/admin" element={
+          <ProtectedRoute requiredRole="admin">
+            <AdminDashboard />
+          </ProtectedRoute>
+        } />
 
           {/* 404 Default */}
           <Route path="*" element={<Navigate to="/" replace />} />

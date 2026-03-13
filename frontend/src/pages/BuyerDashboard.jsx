@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import API from '../services/api';
 import AuctionCard from '../components/AuctionCard';
@@ -6,7 +6,7 @@ import { ShoppingBag, TrendingUp, Package, Clock, Gavel, LayoutDashboard } from 
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 
-const formatMoney = (cents) => `$${(cents / 100).toFixed(2)}`;
+const formatMoney = (cents) => `₹${(cents / 100).toFixed(2)}`;
 
 const BuyerDashboard = () => {
   const { user } = useAuth();
@@ -105,7 +105,7 @@ const BuyerDashboard = () => {
               {[
                 { icon: <TrendingUp className="w-6 h-6" />, bg: 'bg-amber-100 text-amber-600', label: 'Live Auctions', value: auctions.length },
                 { icon: <ShoppingBag className="w-6 h-6" />, bg: 'bg-green-100 text-green-600', label: 'Cart Items', value: cartCount },
-                { icon: <Package className="w-6 h-6" />, bg: 'bg-blue-100 text-blue-600', label: 'Cart Total', value: `$${(cartTotal / 100).toFixed(2)}` },
+                { icon: <Package className="w-6 h-6" />, bg: 'bg-blue-100 text-blue-600', label: 'Cart Total', value: `₹${(cartTotal / 100).toFixed(2)}` },
               ].map((s, i) => (
                 <div key={i} className="bg-white rounded-2xl border border-gray-100 p-5 flex items-center gap-4 shadow-sm">
                   <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${s.bg}`}>{s.icon}</div>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import CreateProductForm from '../components/CreateProductForm';
@@ -6,7 +6,7 @@ import StartAuctionForm from '../components/StartAuctionForm';
 import DashboardStats from '../components/DashboardStats';
 import { Package, TrendingUp, LayoutDashboard, Trash2, Gavel } from 'lucide-react';
 
-const formatMoney = (cents) => `$${(cents / 100).toFixed(2)}`;
+const formatMoney = (cents) => `₹${(cents / 100).toFixed(2)}`;
 
 const FarmerDashboard = () => {
   const { user } = useAuth();

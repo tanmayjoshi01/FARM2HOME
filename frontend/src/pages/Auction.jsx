@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import API from '../services/api';
 import CountdownTimer from '../components/CountdownTimer';
@@ -6,7 +6,7 @@ import BidForm from '../components/BidForm';
 import BidHistory from '../components/BidHistory';
 import { AlertTriangle, CheckCircle, Clock, ArrowLeft, Loader } from 'lucide-react';
 
-const formatMoney = (cents) => `$${(cents / 100).toFixed(2)}`;
+const formatMoney = (cents) => `₹${(cents / 100).toFixed(2)}`;
 
 const getAuctionStatus = (auction) => {
   if (!auction) return null;

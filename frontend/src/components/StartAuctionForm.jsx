@@ -9,7 +9,7 @@ const StartAuctionForm = ({ refreshTrigger, onAuctionSuccess }) => {
   const [formData, setFormData] = useState({
     product_id: '',
     start_price: '',
-    duration_minutes: 60
+    duration_minutes: 1
   });
   
   const [loading, setLoading] = useState(false);
@@ -56,7 +56,7 @@ const StartAuctionForm = ({ refreshTrigger, onAuctionSuccess }) => {
       });
       
       setSuccess(true);
-      setFormData({ product_id: '', start_price: '', duration_minutes: 60 });
+      setFormData({ product_id: '', start_price: '', duration_minutes: 1 });
       if (onAuctionSuccess) onAuctionSuccess();
     } catch (err) {
       setError(err.message || err.response?.data?.error || "Failed to start auction");
@@ -115,10 +115,10 @@ const StartAuctionForm = ({ refreshTrigger, onAuctionSuccess }) => {
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-gray-700 mb-1">Starting Bid ($)</label>
+          <label className="block text-xs font-bold text-gray-700 mb-1">Starting Bid (₹)</label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <span className="text-gray-500 font-semibold">$</span>
+              <span className="text-gray-500 font-semibold">₹</span>
             </div>
             <input 
               type="number" 
@@ -135,14 +135,14 @@ const StartAuctionForm = ({ refreshTrigger, onAuctionSuccess }) => {
 
         <div>
           <div className="flex justify-between items-end mb-1">
-            <label className="block text-xs font-bold text-gray-700">Duration (minutes)</label>
+            <label className="block text-xs font-bold text-gray-700">Duration (minutes) — <span className="text-green-700">Test Mode: 1–5 min</span></label>
           </div>
           <div className="flex items-center gap-4">
             <input 
               type="range" 
-              min="15" 
-              max="1440" 
-              step="15"
+              min="1" 
+              max="5" 
+              step="1"
               value={formData.duration_minutes}
               onChange={(e) => setFormData({...formData, duration_minutes: e.target.value})}
               className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-green-700"
@@ -150,7 +150,7 @@ const StartAuctionForm = ({ refreshTrigger, onAuctionSuccess }) => {
           </div>
           <div className="text-center mt-3">
             <span className="text-sm font-bold text-green-700 tracking-wider">
-              {formData.duration_minutes} mins
+              {formData.duration_minutes} min{formData.duration_minutes > 1 ? 's' : ''} ({formData.duration_minutes * 60}s)
             </span>
           </div>
         </div>

@@ -1,8 +1,8 @@
-import React from 'react';
+﻿import React from 'react';
 import { Link } from 'react-router-dom';
 import { ShoppingCart, Eye, Tag, Info } from 'lucide-react';
 
-const formatMoney = (cents) => `$${(cents / 100).toFixed(2)}`;
+const formatMoney = (cents) => `₹${(cents / 100).toFixed(2)}`;
 
 const ProductCard = ({ product, auction, onAddToCart, onViewDetails }) => {
   const isOnAuction = auction && auction.status === 'active';

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import CartItem from '../components/CartItem';
@@ -92,7 +92,7 @@ const Cart = () => {
                 <div className="space-y-3 text-sm mb-6">
                   <div className="flex justify-between text-gray-600">
                     <span>Subtotal ({cartItems.length} items)</span>
-                    <span className="font-semibold">${(cartTotal / 100).toFixed(2)}</span>
+                    <span className="font-semibold">₹${(cartTotal / 100).toFixed(2)}</span>
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Delivery</span>
@@ -100,13 +100,13 @@ const Cart = () => {
                   </div>
                   <div className="flex justify-between text-gray-600">
                     <span>Tax (8%)</span>
-                    <span className="font-semibold">${((cartTotal * 0.08) / 100).toFixed(2)}</span>
+                    <span className="font-semibold">₹${((cartTotal * 0.08) / 100).toFixed(2)}</span>
                   </div>
                 </div>
                 <div className="border-t border-gray-200 pt-4 mb-6">
                   <div className="flex justify-between items-center">
                     <span className="font-bold text-gray-900 text-lg">Total</span>
-                    <span className="text-3xl font-extrabold text-amber-600">${((cartTotal * 1.08) / 100).toFixed(2)}</span>
+                    <span className="text-3xl font-extrabold text-amber-600">₹${((cartTotal * 1.08) / 100).toFixed(2)}</span>
                   </div>
                 </div>
                 <button

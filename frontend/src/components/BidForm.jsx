@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import API from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { Link } from 'react-router-dom';
@@ -25,7 +25,7 @@ const BidForm = ({ auction, onBidSuccess }) => {
     const bidCents = Math.round(parseFloat(bidAmount) * 100);
     
     if (isNaN(bidCents) || bidCents < minNextBidCents) {
-      setError(`Minimum bid must be $${minNextBidDollars}`);
+      setError(`Minimum bid must be ₹${minNextBidDollars}`);
       return;
     }
 
@@ -70,7 +70,7 @@ const BidForm = ({ auction, onBidSuccess }) => {
       <form onSubmit={handleSubmit} className="flex gap-4">
         <div className="relative flex-[2]">
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <span className="text-gray-500 font-semibold">$</span>
+            <span className="text-gray-500 font-semibold">₹</span>
           </div>
           <input
             type="number"
@@ -92,7 +92,7 @@ const BidForm = ({ auction, onBidSuccess }) => {
         </button>
       </form>
       <div className="mt-2 text-[11px] text-gray-500">
-        Minimum next bid: <span className="font-semibold text-gray-700">${minNextBidDollars}</span>
+        Minimum next bid: <span className="font-semibold text-gray-700">₹${minNextBidDollars}</span>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import API from '../services/api';
 import ProductCard from '../components/ProductCard';
@@ -34,7 +34,7 @@ const ProductModal = ({ item, onClose, onAddToCart, userRole }) => {
           <div className="grid grid-cols-2 gap-4 mb-6">
             <div className="bg-gray-50 rounded-xl p-4">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Price</p>
-              <p className="text-2xl font-extrabold text-green-700">${(product.price_cents / 100).toFixed(2)}</p>
+              <p className="text-2xl font-extrabold text-green-700">₹${(product.price_cents / 100).toFixed(2)}</p>
             </div>
             <div className="bg-gray-50 rounded-xl p-4">
               <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Stock Available</p>
@@ -43,7 +43,7 @@ const ProductModal = ({ item, onClose, onAddToCart, userRole }) => {
             {isOnAuction && (
               <div className="bg-amber-50 rounded-xl p-4 border border-amber-100">
                 <p className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-1">Current Bid</p>
-                <p className="text-2xl font-extrabold text-amber-600">${(auction.current_price / 100).toFixed(2)}</p>
+                <p className="text-2xl font-extrabold text-amber-600">₹${(auction.current_price / 100).toFixed(2)}</p>
               </div>
             )}
             <div className="bg-gray-50 rounded-xl p-4">
